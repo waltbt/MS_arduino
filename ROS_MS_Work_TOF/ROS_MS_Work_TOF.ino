@@ -17,7 +17,7 @@
 void gripper_CB(const std_msgs::Bool& gripper_msg);
 void TOF_sensor_CB(const std_msgs::Empty& sensor_call_msg);
 int check_switches();
-//void tcaselect(uint8_t i);
+void tcaselect(uint8_t i);
 
 // Defines
 
@@ -25,11 +25,9 @@ int check_switches();
 #define MCP4725_ADDR 0x60 //A2, A1,A0 = 0 thus 0110 0000
 #define WRITE_CMD 0x40 //c0, c2 = 0, c1 = 1 thus 0100 0000
 #define TCAADDR 0x70 //Adress for the multiplexor
-
+#define PRESS 3
 
 // Variables will change:
-
-
 byte buttons[] = {2, 3, 4, 5};
 #define NUMBUTTONS sizeof(buttons)
 byte pressed[NUMBUTTONS], buttonState[NUMBUTTONS];
@@ -40,20 +38,16 @@ byte currentState[NUMBUTTONS];
 unsigned long debounceDelay = 50;    // the debounce time; increase if the output flickers
 
 /*
- * Use the TCA9548A I2C multiplexor to shift between sensors
- */
-void tcaselect(uint8_t i){
+   Use the TCA9548A I2C multiplexor to shift between sensors
+*/
+void tcaselect(uint8_t i) {
   Wire.beginTransmission(TCAADDR);
-  Wire.write(1 <<i );
+  Wire.write(1 << i );
   Wire.endTransmission(TCAADDR);
 }
 
- // tcaselect(1);
- // Adafruit_VL6180X vl1 = Adafruit_VL6180X();
-//  tcaselect(1);
-//  Adafruit_VL6180X vl2 = Adafruit_VL6180X();
-//  tcaselect(2);
-//  Adafruit_VL6180X vl3 = Adafruit_VL6180X();
+Adafruit_VL6180X vl[3] = {Adafruit_VL6180X(), Adafruit_VL6180X(), Adafruit_VL6180X()};
+
 
 // Node handler
 ros::NodeHandle nh;
@@ -83,7 +77,8 @@ void gripper_CB(const std_msgs::Bool& gripper_msg) {
     float pressure_d = 5.0; //Setting close pressure in psi
     pressure_sig = (int)((pressure_d / 50.0) * 4096);
   }
-
+  
+  tcaselect(PRESS);
   Wire.beginTransmission(MCP4725_ADDR);
   Wire.write(WRITE_CMD);
   Wire.write(pressure_sig >> 4);
@@ -99,24 +94,26 @@ void gripper_CB(const std_msgs::Bool& gripper_msg) {
 */
 
 void TOF_sensor_CB(const std_msgs::Empty &sensor_call_msg) {
+for(int i=0;i<3;i++){
+     tcaselect(i);
+     TOF_sensor_msg.range_reading[i] = vl[i].readRange();
+     TOF_sensor_msg.lux_reading[i] = vl[i].readLux(VL6180X_ALS_GAIN_5);
+}
+//  tcaselect(0);
+//  //Adafruit_VL6180X vl[0 = Adafruit_VL6180X();
+//  TOF_sensor_msg.range_reading[0] = vl[0].readRange();
+//  TOF_sensor_msg.lux_reading[0] = vl1.readLux(VL6180X_ALS_GAIN_5);
+//  tcaselect(1);
+//  Adafruit_VL6180X vl2 = Adafruit_VL6180X();
+//  TOF_sensor_msg.range_reading[1] = vl2.readRange();
+//  TOF_sensor_msg.lux_reading[1] = vl2.readLux(VL6180X_ALS_GAIN_5);
+//  tcaselect(2);
+//  Adafruit_VL6180X vl3 = Adafruit_VL6180X();
+//  TOF_sensor_msg.range_reading[2] = vl2.readRange();
+//  TOF_sensor_msg.lux_reading[2] = vl2.readLux(VL6180X_ALS_GAIN_5);
 
 
-  
- tcaselect(0);
- Adafruit_VL6180X vl1 = Adafruit_VL6180X();
- TOF_sensor_msg.range_reading[0] = vl1.readRange();
- TOF_sensor_msg.lux_reading[0] = vl1.readLux(VL6180X_ALS_GAIN_5);
-  tcaselect(1);
-  Adafruit_VL6180X vl2 = Adafruit_VL6180X();
- TOF_sensor_msg.range_reading[1] = vl2.readRange();
- TOF_sensor_msg.lux_reading[1] = vl2.readLux(VL6180X_ALS_GAIN_5);
- tcaselect(2);
- Adafruit_VL6180X vl3 = Adafruit_VL6180X();
- TOF_sensor_msg.range_reading[2] = vl2.readRange();
- TOF_sensor_msg.lux_reading[2] = vl2.readLux(VL6180X_ALS_GAIN_5);
-
-
-pub_TOF_sensor.publish(&TOF_sensor_msg);
+  pub_TOF_sensor.publish(&TOF_sensor_msg);
 
 }
 
@@ -125,13 +122,19 @@ void setup()
 {
   Wire.begin(); //Initialize Wire
   //Set the pressure to zero at start
+  tcaselect(PRESS);
   Wire.beginTransmission(MCP4725_ADDR);
   Wire.write(WRITE_CMD);
   Wire.write(0);
   Wire.write(0);
   Wire.endTransmission();
 
-vl.begin();
+  for (int i = 0; i < 3; i++) {
+    tcaselect(i);
+    vl[i].begin();
+  }
+
+
   nh.initNode();
   // Init Subs
   nh.subscribe(gripper_sub);
@@ -195,17 +198,17 @@ int check_switches() {
 
 void loop()
 {
-  
+
   int button = check_switches();
 
-  
+
 
   if (button != -1) {
     button_msg.data = button;
     pub_button.publish(&button_msg);
   }
 
- 
+
   nh.spinOnce();
   //delay(1);
 }

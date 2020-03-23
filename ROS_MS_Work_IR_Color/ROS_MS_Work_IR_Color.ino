@@ -92,7 +92,7 @@ IR_sensor_msg.sensor_reading[0] = (int32_t)analogRead(A0);  // read the input pi
 
 IR_sensor_msg.sensor_reading[1] = (int32_t)analogRead(A1);  // read the input pin (black)
 
-IR_sensor_msg.sensor_reading[2] = (int32_t)analogRead(A2);  // read the input pin (green)
+IR_sensor_msg.sensor_reading[2] = -1;
 
 pub_IR_sensor.publish(&IR_sensor_msg);
 

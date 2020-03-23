@@ -2,14 +2,7 @@
 #include "Adafruit_VL6180X.h"
 #include <Wire.h>  //Allows it to talk to I2C
 
-//Adafruit_VL6180X vl[3] = {Adafruit_VL6180X(),Adafruit_VL6180X(),Adafruit_VL6180X()};
-
-Adafruit_VL6180X vl = Adafruit_VL6180X();
-
-//for(int i=0;i<3;i++){
-//  Adafruit_VL6180X vl[i] = Adafruit_VL6180X();
-//}
-
+Adafruit_VL6180X vl[3] = {Adafruit_VL6180X(),Adafruit_VL6180X(),Adafruit_VL6180X()};
 
 
 void tcaselect(uint8_t i);
@@ -25,33 +18,35 @@ void setup() {
     delay(1);
   }
   Wire.begin();
-  int i = 0;
-//for(int i=0;i<3;i++){
-  //vl[i].begin();
+ // uint8_t i = 2;
+for(int i=0;i<3;i++){
   tcaselect(i);
+  delay(5);
+  vl[i].begin();
+  
     Serial.println("Adafruit VL6180x test!");
-  while (! vl.begin()) {
+  while (! vl[i].begin()) {
     Serial.println("Failed to find sensor");
     //while (1);
   }
   Serial.println("Sensor found!");
-//}
+}
 
 }
 
 
 void loop(){
- int i = 0;
-    //for(int i=0;i<3;i++){
-     // tcaselect(i);
+ //int i = 2;
+    for(int i=0;i<3;i++){
+     tcaselect(i);
       Serial.print("Sensor: "); Serial.println(i);
-    //float lux = vl.readLux(VL6180X_ALS_GAIN_5);
+    float lux = vl[i].readLux(VL6180X_ALS_GAIN_5);
 
-  //Serial.print("Lux: "); Serial.println(lux);
-  tcaselect(i);
-  uint8_t range = vl.readRange();
-  uint8_t status = vl.readRangeStatus();
-  Serial.print(status);
+  Serial.print("Lux: "); Serial.println(lux);
+  //tcaselect(i);
+  uint8_t range = vl[i].readRange();
+  uint8_t status = vl[i].readRangeStatus();
+ // Serial.print(status);
 
   if (status == VL6180X_ERROR_NONE) {
     Serial.print("Range: "); Serial.println(range);
@@ -87,6 +82,7 @@ void loop(){
     Serial.println("Range reading overflow");
   }
   delay(10);
+    }
 }
 
 /*
@@ -96,58 +92,6 @@ void tcaselect(uint8_t i){
   Wire.beginTransmission(TCAADDR);
   Wire.write(1 <<i );
   Wire.endTransmission(TCAADDR);
-  Serial.println("Hello");
-  delay(50);
+  //Serial.println("Hello");
+  //delay(50);
 }
-
- // tcaselect(1);
- // Adafruit_VL6180X vl1 = Adafruit_VL6180X();
-//  tcaselect(1);
-//  Adafruit_VL6180X vl2 = Adafruit_VL6180X();
-//  tcaselect(2);
-//  Adafruit_VL6180X vl3 = Adafruit_VL6180X();
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-//void setup()
-//{
-//  Wire.begin(); //Initialize Wire
-//  Serial.begin(115200);
-//
-//}
-
-
-
-
-
-//void loop()
-//{
-//  
-//    
-// tcaselect(2);
-// Adafruit_VL6180X vl1 = Adafruit_VL6180X();
-// vl1.begin();
-// uint8_t range = vl1.readRange();
-//  Serial.print("Range: "); Serial.println(range);
-//// TOF_sensor_msg.lux_reading[0] = vl1.readLux(VL6180X_ALS_GAIN_5);
-////  tcaselect(1);
-////  Adafruit_VL6180X vl2 = Adafruit_VL6180X();
-//// TOF_sensor_msg.range_reading[1] = vl2.readRange();
-//// TOF_sensor_msg.lux_reading[1] = vl2.readLux(VL6180X_ALS_GAIN_5);
-//// tcaselect(2);
-//// Adafruit_VL6180X vl3 = Adafruit_VL6180X();
-//// TOF_sensor_msg.range_reading[2] = vl2.readRange();
-//// TOF_sensor_msg.lux_reading[2] = vl2.readLux(VL6180X_ALS_GAIN_5);
-//}

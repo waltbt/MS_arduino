@@ -18,6 +18,10 @@
 /* Initialise with specific int time and gain values */
 Adafruit_TCS34725 tcs = Adafruit_TCS34725(TCS34725_INTEGRATIONTIME_700MS, TCS34725_GAIN_1X);
 
+Adafruit_VL6180X vl = Adafruit_VL6180X();
+
+void tcaselect(uint8_t i);
+
 // Function Prototypes
 void gripper_CB(const std_msgs::Bool& gripper_msg);
 void IR_sensor_CB(const std_msgs::Empty& sensor_call_msg);
@@ -31,7 +35,10 @@ int check_switches();
 //Assumes A0 is pulled low which is default
 #define MCP4725_ADDR 0x60 //A2, A1,A0 = 0 thus 0110 0000
 #define WRITE_CMD 0x40 //c0, c2 = 0, c1 = 1 thus 0100 0000
-
+#define COLOR 1
+#define TOF 0
+#define PRESS 3
+#define TCAADDR 0x70 //Adress for the multiplexor
 
 // Variables will change:
 
@@ -45,7 +52,7 @@ byte currentState[NUMBUTTONS];
 
 unsigned long debounceDelay = 50;    // the debounce time; increase if the output flickers
 
-Adafruit_VL6180X vl = Adafruit_VL6180X();
+
 
 // Node handler
 ros::NodeHandle nh;
@@ -53,9 +60,6 @@ ros::NodeHandle nh;
 // Publishers
 std_msgs::Int32 button_msg;
 ros::Publisher pub_button("button_ret", &button_msg);
-
-//std_msgs::Int32 sensor_range_msg;
-//ros::Publisher pub_sensor_range("sensor_range_ret", &sensor_range_msg);
 
 gt_py::IR_sensor_data IR_sensor_msg;
 ros::Publisher pub_IR_sensor("sensor_ret/IR", &IR_sensor_msg);
@@ -82,7 +86,7 @@ void gripper_CB(const std_msgs::Bool& gripper_msg) {
     float pressure_d = 5.0; //Setting close pressure in psi
     pressure_sig = (int)((pressure_d / 50.0) * 4096);
   }
-
+  tcaselect(PRESS);
   Wire.beginTransmission(MCP4725_ADDR);
   Wire.write(WRITE_CMD);
   Wire.write(pressure_sig >> 4);
@@ -113,6 +117,7 @@ pub_IR_sensor.publish(&IR_sensor_msg);
 */
 
 void color_sensor_CB(const std_msgs::Empty& sensor_call_msg) {
+  tcaselect(COLOR);
 uint16_t r, g, b, c, colorTemp;
 float lux;
   tcs.getRawData(&r, &g, &b, &c);
@@ -142,7 +147,7 @@ pub_color_sensor.publish(&color_sensor_msg);
 
 void TOF_sensor_CB(const std_msgs::Empty &sensor_call_msg) {
 
-
+tcaselect(TOF);
  TOF_sensor_msg.range_reading[0] = vl.readRange();
  TOF_sensor_msg.lux_reading[0] = vl.readLux(VL6180X_ALS_GAIN_5);
 
@@ -159,7 +164,9 @@ pub_TOF_sensor.publish(&TOF_sensor_msg);
 
 void setup()
 {
+  
   Wire.begin(); //Initialize Wire
+  tcaselect(PRESS);
   //Set the pressure to zero at start
   Wire.beginTransmission(MCP4725_ADDR);
   Wire.write(WRITE_CMD);
@@ -167,7 +174,10 @@ void setup()
   Wire.write(0);
   Wire.endTransmission();
 
+  tcaselect(COLOR);
   tcs.begin();
+  tcaselect(TOF);
+  vl.begin();
 
   nh.initNode();
   // Init Subs
@@ -247,5 +257,13 @@ void loop()
 
  
   nh.spinOnce();
-  //delay(1);
+}
+
+/*
+ * Use the TCA9548A I2C multiplexor to shift between sensors
+ */
+void tcaselect(uint8_t i){
+  Wire.beginTransmission(TCAADDR);
+  Wire.write(1 <<i );
+  Wire.endTransmission(TCAADDR);
 }
