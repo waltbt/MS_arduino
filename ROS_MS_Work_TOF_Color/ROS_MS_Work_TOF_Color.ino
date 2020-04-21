@@ -11,8 +11,8 @@
 #include <std_msgs/Bool.h>
 #include <std_msgs/Int32.h>
 #include <std_msgs/Empty.h>
-#include <gt_py/color_sensor_data.h>
-#include <gt_py/TOF_sensor_data.h>
+#include <arm_control/color_sensor_data.h>
+#include <arm_control/TOF_sensor_data.h>
 
 /* Initialise with specific int time and gain values */
 Adafruit_TCS34725 tcs = Adafruit_TCS34725(TCS34725_INTEGRATIONTIME_700MS, TCS34725_GAIN_1X);
@@ -59,10 +59,10 @@ ros::Publisher pub_button("button_ret", &button_msg);
 //ros::Publisher pub_sensor_range("sensor_range_ret", &sensor_range_msg);
 
 
-gt_py::color_sensor_data color_sensor_msg;
+arm_control::color_sensor_data color_sensor_msg;
 ros::Publisher pub_color_sensor("sensor_ret/color", &color_sensor_msg);
 
-gt_py::TOF_sensor_data TOF_sensor_msg;
+arm_control::TOF_sensor_data TOF_sensor_msg;
 ros::Publisher pub_TOF_sensor("sensor_ret/TOF", &TOF_sensor_msg);
 
 

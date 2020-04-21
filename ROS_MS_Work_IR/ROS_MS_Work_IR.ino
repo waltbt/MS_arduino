@@ -4,19 +4,19 @@
    for logging.
 */
 
-#include "Adafruit_VL6180X.h"
+//#include "Adafruit_VL6180X.h"
 #include <Wire.h>  //Allows it to talk to I2C
 #include <ros.h>
 #include <std_msgs/Bool.h>
 #include <std_msgs/Int32.h>
 #include <std_msgs/Empty.h>
-#include <gt_py/IR_sensor_data.h>
-#include <gt_py/TOF_sensor_data.h>
+#include <trainer/IR_sensor_data.h>
+//#include <trainer/TOF_sensor_data.h>
 
 // Function Prototypes
 void gripper_CB(const std_msgs::Bool& gripper_msg);
 void IR_sensor_CB(const std_msgs::Empty& gripper_msg);
-void TOF_sensor_CB(const std_msgs::Empty& gripper_msg);
+//void TOF_sensor_CB(const std_msgs::Empty& gripper_msg);
 int check_switches();
 
 
@@ -46,14 +46,12 @@ ros::NodeHandle nh;
 std_msgs::Int32 button_msg;
 ros::Publisher pub_button("button_ret", &button_msg);
 
-//std_msgs::Int32 sensor_range_msg;
-//ros::Publisher pub_sensor_range("sensor_range_ret", &sensor_range_msg);
 
-gt_py::IR_sensor_data IR_sensor_msg;
+trainer::IR_sensor_data IR_sensor_msg;
 ros::Publisher pub_IR_sensor("sensor_ret/IR", &IR_sensor_msg);
 
-gt_py::TOF_sensor_data TOF_sensor_msg;
-ros::Publisher pub_TOF_sensor("sensor_ret/TOF", &TOF_sensor_msg);
+//trainer::TOF_sensor_data TOF_sensor_msg;
+//ros::Publisher pub_TOF_sensor("sensor_ret/TOF", &TOF_sensor_msg);
 
 //std_msgs::Float32 sensor_lux_msg;
 //ros::Publisher pub_sensor_lux("sensor_lux_ret", &sensor_lux_msg);
@@ -61,7 +59,7 @@ ros::Publisher pub_TOF_sensor("sensor_ret/TOF", &TOF_sensor_msg);
 //Subcribers
 ros::Subscriber<std_msgs::Bool> gripper_sub("toggle_gripper", &gripper_CB);
 ros::Subscriber<std_msgs::Empty> IR_sensor_sub("sensor_call/IR", &IR_sensor_CB);
-ros::Subscriber<std_msgs::Empty> TOF_sensor_sub("sensor_call/TOF", &TOF_sensor_CB);
+//ros::Subscriber<std_msgs::Empty> TOF_sensor_sub("sensor_call/TOF", &TOF_sensor_CB);
 
 /*
    A Callback function to control the gripper
@@ -102,24 +100,24 @@ pub_IR_sensor.publish(&IR_sensor_msg);
    A Callback function that returns the TOF sensor reading
 */
 
-void TOF_sensor_CB(const std_msgs::Empty& sensor_call_msg) {
-  // How to make this work????
-
-TOF_sensor_msg.range_reading[0] = 0;  // read the input pin (blue)
-
-TOF_sensor_msg.range_reading[1] = 1;  // read the input pin (black)
-
-TOF_sensor_msg.range_reading[2] = 2;  // read the input pin (green)
-
-TOF_sensor_msg.lux_reading[0] = 0.1;  // read the input pin (blue)
-
-TOF_sensor_msg.lux_reading[1] = 1.1;  // read the input pin (black)
-
-TOF_sensor_msg.lux_reading[2] = 2.1;  // read the input pin (green)
-
-pub_TOF_sensor.publish(&TOF_sensor_msg);
-
-}
+//void TOF_sensor_CB(const std_msgs::Empty& sensor_call_msg) {
+//  // How to make this work????
+//
+//TOF_sensor_msg.range_reading[0] = 0;  // read the input pin (blue)
+//
+//TOF_sensor_msg.range_reading[1] = 1;  // read the input pin (black)
+//
+//TOF_sensor_msg.range_reading[2] = 2;  // read the input pin (green)
+//
+//TOF_sensor_msg.lux_reading[0] = 0.1;  // read the input pin (blue)
+//
+//TOF_sensor_msg.lux_reading[1] = 1.1;  // read the input pin (black)
+//
+//TOF_sensor_msg.lux_reading[2] = 2.1;  // read the input pin (green)
+//
+//pub_TOF_sensor.publish(&TOF_sensor_msg);
+//
+//}
 
 
 
@@ -139,11 +137,11 @@ void setup()
   // Init Subs
   nh.subscribe(gripper_sub);
   nh.subscribe(IR_sensor_sub);
-  nh.subscribe(TOF_sensor_sub);
+//  nh.subscribe(TOF_sensor_sub);
   // Init Pubs
   nh.advertise(pub_button);
   nh.advertise(pub_IR_sensor);
-  nh.advertise(pub_TOF_sensor);
+//  nh.advertise(pub_TOF_sensor);
 
   for (byte i = 0; i < NUMBUTTONS; i++) {
     pinMode(buttons[i], INPUT);

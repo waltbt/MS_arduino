@@ -10,7 +10,7 @@
 #include <std_msgs/Bool.h>
 #include <std_msgs/Int32.h>
 #include <std_msgs/Empty.h>
-#include <gt_py/TOF_sensor_data.h>
+#include <arm_control/TOF_sensor_data.h>
 
 
 // Function Prototypes
@@ -57,7 +57,7 @@ std_msgs::Int32 button_msg;
 ros::Publisher pub_button("button_ret", &button_msg);
 
 
-gt_py::TOF_sensor_data TOF_sensor_msg;
+arm_control::TOF_sensor_data TOF_sensor_msg;
 ros::Publisher pub_TOF_sensor("sensor_ret/TOF", &TOF_sensor_msg);
 
 
@@ -99,19 +99,6 @@ for(int i=0;i<3;i++){
      TOF_sensor_msg.range_reading[i] = vl[i].readRange();
      TOF_sensor_msg.lux_reading[i] = vl[i].readLux(VL6180X_ALS_GAIN_5);
 }
-//  tcaselect(0);
-//  //Adafruit_VL6180X vl[0 = Adafruit_VL6180X();
-//  TOF_sensor_msg.range_reading[0] = vl[0].readRange();
-//  TOF_sensor_msg.lux_reading[0] = vl1.readLux(VL6180X_ALS_GAIN_5);
-//  tcaselect(1);
-//  Adafruit_VL6180X vl2 = Adafruit_VL6180X();
-//  TOF_sensor_msg.range_reading[1] = vl2.readRange();
-//  TOF_sensor_msg.lux_reading[1] = vl2.readLux(VL6180X_ALS_GAIN_5);
-//  tcaselect(2);
-//  Adafruit_VL6180X vl3 = Adafruit_VL6180X();
-//  TOF_sensor_msg.range_reading[2] = vl2.readRange();
-//  TOF_sensor_msg.lux_reading[2] = vl2.readLux(VL6180X_ALS_GAIN_5);
-
 
   pub_TOF_sensor.publish(&TOF_sensor_msg);
 
